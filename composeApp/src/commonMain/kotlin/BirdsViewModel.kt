@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 
 sealed interface BirdUiState {
     data object Loading: BirdUiState
-    data class Success(val list: List<BirdImage>): BirdUiState
+    data class Success(val list: List<BirdImage>, val categories: List<String?>): BirdUiState
     data class Error(val msg: String): BirdUiState
 }
 
@@ -34,7 +34,17 @@ class BirdsViewModel: ViewModel() {
             _birdUiState.update { BirdUiState.Loading }
             try {
                 val images = getImages()
-                _birdUiState.update { BirdUiState.Success(images) }
+
+                val uniqueCategories = images.distinctBy {
+                    it.category
+                }.map {
+                    it.category
+                }
+
+                _birdUiState.update { BirdUiState.Success(
+                    list = images,
+                    categories = uniqueCategories
+                ) }
             } catch (e: Exception) {
                 _birdUiState.update { BirdUiState.Error(msg = e.message ?: "Some error happened") }
             }
